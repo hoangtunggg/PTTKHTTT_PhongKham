@@ -9,6 +9,7 @@
 <body>
     
 	<%
+	// 1. KIỂM TRA ĐĂNG NHẬP
 	BacSi currentBS = (BacSi)session.getAttribute("bacsi");
 	if(currentBS == null){
 	    response.sendRedirect("dangnhap.jsp?err=timeout");
@@ -19,19 +20,24 @@
     int idTuanlamviec = 0;
     String maBacsi = currentBS.getMaBS();
 
+	// Khai báo DAO (Đảm bảo tên lớp trùng với file .java)
 	ThongtindkibsiDAO ttDKBSDAO = new ThongtindkibsiDAO();
 	TuanlamviecDAO tuanDao = new TuanlamviecDAO();
 	CadangkiDAO caDAO = new CadangkiDAO();
 	
 	String action = request.getParameter("action");
     
+    // Tải danh sách đăng ký từ Session (hoặc khởi tạo mới)
     listDKBS = (ArrayList<ThongTinDangKiBacSi>)session.getAttribute("listDangKyBacSi");
     if (listDKBS == null) {
         listDKBS = new ArrayList<ThongTinDangKiBacSi>();
     }
     
-
+    // =========================================================================
 	if ((action == null)||(action.trim().length() ==0)) { 
+	    // LOGIC TẢI LẦN ĐẦU
+        
+        // Xác định ID tuần (ưu tiên Session, sau đó là thời gian hiện tại)
         if (session.getAttribute("idTuanlamviec") != null) {
             idTuanlamviec = (int)session.getAttribute("idTuanlamviec");
         } else {
@@ -39,27 +45,68 @@
         }
 
         session.setAttribute("idTuanlamviec", idTuanlamviec);
+        
+        // Tải từ DB chỉ khi Session chưa có dữ liệu tạm
         if (idTuanlamviec > 0 && listDKBS.isEmpty()) { 
             listDKBS = ttDKBSDAO.getDKiCuaBS(maBacsi, idTuanlamviec); 
             if (listDKBS == null) {
                 listDKBS = new ArrayList<ThongTinDangKiBacSi>();
             }
         } 
+        
+	} else if (action.equalsIgnoreCase("set_edit_mode")) { 
+	    // LOGIC CHUYỂN SANG CHẾ ĐỘ SỬA
+	    
+	    String idCaEditParam = request.getParameter("idCa");
+        if (idCaEditParam != null) {
+            // Lưu ID ca cũ vào Session
+            session.setAttribute("idCaCuDangSua", Integer.parseInt(idCaEditParam)); 
+        }
+        // Chuyển hướng đến trang chọn ca mới
+        response.sendRedirect("gdchoncadangki.jsp");
+        return; 
+        
 	} else if (action.equalsIgnoreCase("them")) {
+        // LOGIC THÊM VÀ SỬA (THAY THẾ)
+        
         int idCaDangKi = 0;
         try {
             idCaDangKi = Integer.parseInt(request.getParameter("idCa"));
         } catch(NumberFormatException e) {
+            // Log lỗi nếu cần
         }
 
         boolean daTontaiCa = false;
-        for(ThongTinDangKiBacSi dk : listDKBS){
-            if(dk.getCaDangKi() != null && dk.getCaDangKi().getId() == idCaDangKi){
-                daTontaiCa = true;
-                break;
+        
+        // 1. KIỂM TRA CHẾ ĐỘ SỬA
+        Integer idCaCuObj = (Integer) session.getAttribute("idCaCuDangSua");
+        
+        if (idCaCuObj != null) {
+            // Đang ở chế độ SỬA: XÓA ca cũ khỏi danh sách
+            int idCaCu = idCaCuObj.intValue();
+            Iterator<ThongTinDangKiBacSi> iterator = listDKBS.iterator();
+            while (iterator.hasNext()) {
+                ThongTinDangKiBacSi dk = iterator.next();
+                if (dk.getCaDangKi() != null && dk.getCaDangKi().getId() == idCaCu) {
+                    iterator.remove(); // Xóa ca cũ
+                    break;
+                }
+            }
+            // Tắt chế độ SỬA
+            session.removeAttribute("idCaCuDangSua");
+            // Sau khi xóa, logic tiếp tục xuống phần Thêm
+            
+        } else {
+            // Đang ở chế độ THÊM BÌNH THƯỜNG: Kiểm tra trùng lặp
+            for(ThongTinDangKiBacSi dk : listDKBS){
+                if(dk.getCaDangKi() != null && dk.getCaDangKi().getId() == idCaDangKi){
+                    daTontaiCa = true;
+                    break;
+                }
             }
         }
         
+        // 2. THÊM CA MỚI (Chỉ thêm nếu không trùng hoặc đã xóa ca cũ)
         if(!daTontaiCa && idCaDangKi > 0){   
         	CaDangKi caMoi = caDAO.getCaDangKiByID(idCaDangKi);
             if (caMoi != null) {
@@ -70,7 +117,9 @@
                 listDKBS.add(dkMoi);
             }
         }
+        
 	} else if (action.equalsIgnoreCase("xoa")) {
+        // LOGIC XÓA (Giữ nguyên)
         int idCaDangKiCanXoa = 0;
         try {
             idCaDangKiCanXoa = Integer.parseInt(request.getParameter("idCa"));
@@ -89,10 +138,12 @@
         }
 	}
     
+	// 3. LƯU LẠI DANH SÁCH CUỐI CÙNG VÀO SESSION
 	session.setAttribute("listDangKyBacSi", listDKBS);
+	
+	// Khai báo biến hiển thị
 	int totalCaTrongTuan = listDKBS.size();
     String tenBacSi = currentBS.getHoTen(); 
-    
     String tenChuyenKhoa = "Chưa xác định";
     if (currentBS.getChuyenKhoa() != null) { 
         tenChuyenKhoa = currentBS.getChuyenKhoa().getTenKhoa();
@@ -139,7 +190,7 @@
                         <td><%= stt++ %></td>
                         <td><%= ngayLamViec %></td>
                         <td><%= caLamViec %></td>
-                        <td><a href="#">(click để sửa)</a></td> 
+                        <td><a href="gddangkilich.jsp?action=set_edit_mode&idCa=<%= idCaHienTai %>">Sửa</a></td> 
                         <td><a href="gddangkilich.jsp?action=xoa&idCa=<%= idCaHienTai %>">Xóa</a></td>
                     </tr>
                 <% 
