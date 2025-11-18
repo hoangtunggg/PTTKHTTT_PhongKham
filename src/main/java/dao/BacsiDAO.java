@@ -2,6 +2,7 @@ package dao;
 
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 
 import model.BacSi;
 import model.ChuyenKhoa;
@@ -36,5 +37,32 @@ public class BacsiDAO extends DAO {
             e.printStackTrace();
         }
         return bs;
+    }
+    
+    public ArrayList<BacSi> getDSBacSi() {
+        ArrayList<BacSi> listBS = null;
+        String sql = "{call LayDSBacSiChoQL()}"; 
+        
+        try (CallableStatement cs = con.prepareCall(sql);
+             ResultSet rs = cs.executeQuery()) {
+            
+            while (rs.next()) {
+                if (listBS == null) {
+                    listBS = new ArrayList<>();
+                }
+                ChuyenKhoa ck = new ChuyenKhoa();
+                ck.setTenKhoa(rs.getString("chuyenkhoa")); 
+                
+                BacSi bs = new BacSi();
+                bs.setMaBS(rs.getString("maBS"));
+                bs.setHoTen(rs.getString("hoTenBS")); 
+                bs.setChuyenKhoa(ck); 
+                listBS.add(bs);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            listBS = null;
+        }
+        return listBS;
     }
 }
