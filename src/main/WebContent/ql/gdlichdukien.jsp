@@ -6,6 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Lịch Làm Việc Dự Kiến</title>
 <style>
+    /* CSS cơ bản */
     body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
     .container { width: 90%; margin: 0 auto; padding: 20px; }
     h2 { margin-bottom: 5px; }
@@ -14,11 +15,22 @@
     th, td { border: 1px solid #000; padding: 10px; text-align: center; }
     th { background-color: #f0f0f0; }
     .button-group { margin-top: 30px; }
-    .button-group button { background-color: #00bcd4; color: white; padding: 10px 20px; border: none; cursor: pointer; margin: 5px; }
+    .button-group a, .button-group button { 
+        padding: 10px 15px; 
+        border: none; 
+        cursor: pointer; 
+        margin: 5px; 
+        text-decoration: none;
+        color: white;
+    }
+    .button-group a { background-color: #dc3545; }
+    .button-group button[type="submit"] { background-color: #007bff; }
+    .button-group a:nth-child(2) { background-color: #28a745; }
 </style>
 </head>
 <body>
 <%
+	// 1. KIỂM TRA ĐĂNG NHẬP VÀ KHAI BÁO CẦN THIẾT
 	ThanhVien currentQL = (ThanhVien)session.getAttribute("quanly");
 	if(currentQL == null){
 	    response.sendRedirect("dangnhap.jsp?err=timeout");
@@ -29,35 +41,47 @@
 	String maBacsi = null;
 	ArrayList<ThongTinDangKiBacSi> listDKBS = null;
 	
+	// Khai báo DAO
 	ThongtindkibsiDAO ttDKBSDAO = new ThongtindkibsiDAO();
     TuanlamviecDAO tuanDAO = new TuanlamviecDAO();
     CadangkiDAO caDAO = new CadangkiDAO();
     BacsiDAO bsiDAO = new BacsiDAO();
 	
-    // --- LOGIC XÁC ĐỊNH BÁC SĨ ĐANG ĐƯỢC CHỌN ---
-    if(session.getAttribute("bacsidangchon") == null){
-		maBacsi = request.getParameter("maBS");
-		if (maBacsi != null && !maBacsi.trim().isEmpty()) {
-	    	bs = bsiDAO.getBacSiByMaBS(maBacsi); // TẢI ĐỐI TƯỢNG BS TỪ DB
-	    	if(bs != null) {
-	    		session.setAttribute("bacsidangchon", bs); // LƯU VÀO SESSION
-	    	} else {
-	    		response.sendRedirect("gdlichdukien.jsp?err=bs_not_found");
-	    		return;
-	    	}
-		} else {
-			response.sendRedirect("gdlichdukien.jsp?err=missing_params");
-			return;
-		}
-	} else {
-		// Tải từ Session (các lần truy cập sau)
-		bs = (BacSi) session.getAttribute("bacsidangchon");
-		maBacsi = bs.getMaBS(); 
-	}
-   	
-    int idTuanlamviec = (int) session.getAttribute("idTuanlamviec");
-    TuanLamViec tuanHienTai = tuanDAO.getTuanById(idTuanlamviec);
+    // Lấy ID Tuần từ Session (Giả định đã được lưu trước đó)
+    int idTuanlamviec = (int) session.getAttribute("idTuanlamviec"); 
     
+    // Lấy Tham số maBS mới từ URL
+    String maBacsiParam = request.getParameter("maBS"); 
+    
+    // --- LOGIC XÁC ĐỊNH BÁC SĨ ĐANG ĐƯỢC CHỌN VÀ TẢI LẠI TỪ DB NẾU THAY ĐỔI ---
+    BacSi bsSession = (BacSi) session.getAttribute("bacsidangchon");
+    
+    // ĐIỀU KIỆN TẢI LẠI BS: 
+    // 1. Session chưa có BS HOẶC 
+    // 2. Có tham số maBS mới và nó KHÔNG khớp với maBS đang có trong Session.
+    if(bsSession == null || (maBacsiParam != null && !maBacsiParam.equals(bsSession.getMaBS()))) {
+        
+        String maBSCanTai = (maBacsiParam != null) ? maBacsiParam : "";
+        if (maBSCanTai.isEmpty()) {
+            response.sendRedirect("gdlichdukien.jsp?err=missing_params");
+            return;
+        }
+
+        bs = bsiDAO.getBacSiByMaBS(maBSCanTai); // TẢI ĐỐI TƯỢNG BS MỚI
+        if(bs != null) {
+            session.setAttribute("bacsidangchon", bs); // LƯU BS MỚI VÀO SESSION
+        } else {
+            response.sendRedirect("gdlichdukien.jsp?err=bs_not_found");
+            return;
+        }
+    } else {
+        // Sử dụng đối tượng BS đã có sẵn trong Session
+        bs = bsSession;
+    }
+    maBacsi = bs.getMaBS(); 
+   	// ---------------------------------------------
+    
+    // Kiểm tra tính hợp lệ của tham số
     if (maBacsi == null || idTuanlamviec == 0) {
         response.sendRedirect("gdlichdukien.jsp?err=missing_params");
         return;
@@ -65,10 +89,15 @@
     
     String action = request.getParameter("action");
     
+    // Tải danh sách đăng ký từ Session hoặc khởi tạo mới
     listDKBS = (ArrayList<ThongTinDangKiBacSi>)session.getAttribute("listDangKyBacSi");
-    if (listDKBS == null) {
+    if (listDKBS == null || (action == null && !listDKBS.isEmpty() && !listDKBS.get(0).getBacSi().getMaBS().equals(maBacsi))) {
+        // Nếu listDKBS rỗng HOẶC list đó thuộc về BS khác, khởi tạo rỗng để tải lại
         listDKBS = new ArrayList<ThongTinDangKiBacSi>();
     }
+
+    // Lấy thông tin hiển thị tuần và xử lý Action
+    TuanLamViec tuanHienTai = tuanDAO.getTuanById(idTuanlamviec);
     
     // Lấy thông tin hiển thị tuần
     String ngayBatDau = (tuanHienTai != null && tuanHienTai.getNgayBatDau() != null) ? tuanHienTai.getNgayBatDau().toString() : "N/A";
@@ -78,52 +107,39 @@
         // Tải từ DB chỉ khi Session chưa có dữ liệu tạm
         if (idTuanlamviec > 0 && listDKBS.isEmpty()) { 
             listDKBS = ttDKBSDAO.getDKiCuaBS(maBacsi, idTuanlamviec); 
-            if (listDKBS == null) {
-                listDKBS = new ArrayList<ThongTinDangKiBacSi>();
-            }
+            if (listDKBS == null) { listDKBS = new ArrayList<ThongTinDangKiBacSi>(); }
         } 
         
 	} else if (action.equalsIgnoreCase("set_edit_mode")) { 
 	    // LOGIC CHUYỂN SANG CHẾ ĐỘ SỬA
-	    
 	    String idCaEditParam = request.getParameter("idCa");
-        if (idCaEditParam != null) {
-            // Lưu ID ca cũ vào Session
-            session.setAttribute("idCaCuDangSua", Integer.parseInt(idCaEditParam)); 
-        }
-        // Chuyển hướng đến trang chọn ca mới
-        response.sendRedirect("gdlenlichcadangki.jsp");
+        if (idCaEditParam != null) { session.setAttribute("idCaCuDangSua", Integer.parseInt(idCaEditParam)); }
+        response.sendRedirect("gdlenlichcadangki.jsp?maBS=" + maBacsi); // Gửi maBS qua URL
         return; 
         
 	} else if (action.equalsIgnoreCase("them")) {
         // LOGIC THÊM VÀ SỬA (THAY THẾ)
-        
         int idCaDangKi = 0;
         try { idCaDangKi = Integer.parseInt(request.getParameter("idCa")); } catch(NumberFormatException e) { }
-
         boolean daTontaiCa = false;
         Integer idCaCuObj = (Integer) session.getAttribute("idCaCuDangSua");
         
         if (idCaCuObj != null) {
-            // Đang ở chế độ SỬA: XÓA ca cũ khỏi danh sách
+            // Đang ở chế độ SỬA: XÓA ca cũ
             int idCaCu = idCaCuObj.intValue();
             Iterator<ThongTinDangKiBacSi> iterator = listDKBS.iterator();
             while (iterator.hasNext()) {
                 ThongTinDangKiBacSi dk = iterator.next();
                 if (dk.getCaDangKi() != null && dk.getCaDangKi().getId() == idCaCu) {
-                    iterator.remove(); // Xóa ca cũ
-                    break;
+                    iterator.remove(); break;
                 }
             }
-            // Tắt chế độ SỬA
             session.removeAttribute("idCaCuDangSua");
-            
         } else {
             // Đang ở chế độ THÊM BÌNH THƯỜNG: Kiểm tra trùng lặp
             for(ThongTinDangKiBacSi dk : listDKBS){
                 if(dk.getCaDangKi() != null && dk.getCaDangKi().getId() == idCaDangKi){
-                    daTontaiCa = true;
-                    break;
+                    daTontaiCa = true; break;
                 }
             }
         }
@@ -136,12 +152,13 @@
                 dkMoi.setCaDangKi(caMoi);
                 dkMoi.setBacSi(bs);
                 dkMoi.setNgayTao(new java.sql.Date(System.currentTimeMillis()));
+                dkMoi.setTrangThai("CHO_DUYET");
                 listDKBS.add(dkMoi);
             }
         }
         
 	} else if (action.equalsIgnoreCase("xoa")) {
-        // LOGIC XÓA (Giữ nguyên)
+        // LOGIC XÓA
         int idCaDangKiCanXoa = 0;
         try { idCaDangKiCanXoa = Integer.parseInt(request.getParameter("idCa")); } catch(NumberFormatException e) { }
         
@@ -150,8 +167,7 @@
             while (iterator.hasNext()) {
                 ThongTinDangKiBacSi dk = iterator.next();
                 if (dk.getCaDangKi() != null && dk.getCaDangKi().getId() == idCaDangKiCanXoa) {
-                    iterator.remove();
-                    break;
+                    iterator.remove(); break;
                 }
             }
         }
@@ -162,7 +178,7 @@
 %>
 
 <div class="container">
-    <h2>Lịch làm việc</h2>
+    <h2>Lịch làm việc của BS: <%= bs.getHoTen() %></h2>
     
     <p class="tuan-info">Tuần làm việc (từ <%= ngayBatDau %> – <%= ngayKetThuc %>)</p>
 
@@ -176,7 +192,8 @@
                 <th>Xóa</th>
                 <th>Ghi chú</th> 
                 <th>Trạng thái</th>
-                <th>Chọn</th> </tr>
+                <th>Chọn</th>
+            </tr>
         </thead>
         <tbody>
             <% 
@@ -193,9 +210,8 @@
                         String caLamViec = (dk.getCaDangKi() != null) ? dk.getCaDangKi().getCaLamViec() : "N/A";
                         int idCaHienTai = (dk.getCaDangKi() != null) ? dk.getCaDangKi().getId() : 0;
                         
-                        // Giá trị giả định cho Ghi chú và Trạng thái
                         String ghiChu = "-";
-                        String trangThai = "Chưa duyệt";
+                        String trangThai = (dk.getTrangThai() != null) ? dk.getTrangThai() : "Chưa xác định";
                 %>
                     <tr>
                         <td><%= stt++ %></td>
@@ -215,10 +231,26 @@
     </table>
 
     <div class="button-group">
-        <button onclick="history.back()">Quay lại</button>
-        <a href="gdlenlichcadangki.jsp?maBS=<%= maBacsi %>">Thêm lịch làm việc</a>
-        <button>Lưu lịch</button>
-    </div>
+    
+    <%-- Nút Quay lại --%>
+    <button onclick="history.back()">Quay lại</button>
+    
+    <%-- Nút Thêm lịch (Liên kết) --%>
+    <a href="gdlenlichcadangki.jsp?maBS=<%= maBacsi %>">Thêm lịch làm việc</a>
+    
+    <%-- FORM XỬ LÝ LƯU LỊCH CHÍNH THỨC --%>
+    <form action="doluulich.jsp" method="post" style="display: inline;">
+        
+        <%-- LƯU Ý QUAN TRỌNG: 
+             Để logic xử lý chính xác, bạn có thể cần truyền thêm maBacsi 
+             hoặc các ID cần thiết nếu logic doluulich.jsp cần chúng. 
+             Hiện tại, chúng ta dựa vào Session, nên chỉ cần nút submit. 
+        --%>
+        <button type="submit">
+            Lưu lịch
+        </button>
+    </form>
+</div>
 </div>
 </body>
 </html>

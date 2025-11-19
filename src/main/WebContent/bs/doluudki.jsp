@@ -26,7 +26,19 @@
         success = ttDKBSDAO.luuDangKyBacSi(listDKBS); 
         
         if (success) {
+            // GHI LOG TRƯỚC KHI XÓA
+            System.out.println("LOG: Saving successful. Attempting to remove listDangKyBacSi from session.");
+            
+            // Dòng xóa
             session.removeAttribute("listDangKyBacSi"); 
+            
+            // GHI LOG SAU KHI XÓA (Kiểm tra xem nó còn null không)
+            if (session.getAttribute("listDangKyBacSi") == null) {
+                System.out.println("LOG: listDangKyBacSi REMOVED successfully.");
+            } else {
+                System.out.println("LOG: ERROR! listDangKyBacSi STILL EXISTS after removeAttribute.");
+            }
+            
             statusMessage = "Lưu đăng kí thành công! Dữ liệu đã được cập nhật.";
         } else {
             statusMessage = "LỖI: Không thể lưu đăng kí vào cơ sở dữ liệu. Vui lòng thử lại.";
