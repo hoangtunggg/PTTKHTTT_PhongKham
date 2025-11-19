@@ -8,61 +8,55 @@
 </head>
 <body>
 <%
-    // 1. LẤY ĐỐI TƯỢNG BÁC SĨ VÀ LOGGING
-    BacSi bs = (BacSi)session.getAttribute("bacsi");
-    
-    // --- BỔ SUNG LOGGING VÀO CONSOLE CỦA SERVER ---
-    if (bs != null) {
-        System.out.println("LOG: BacSi found in session. HoTen: " + bs.getHoTen() + ", MaBS: " + bs.getMaBS());
-    } else {
-        System.out.println("LOG: BacSi object is NULL in session. Redirecting to login.");
-    }
-    // ---------------------------------------------
-    
-    if(bs == null){
-        response.sendRedirect("dangnhap.jsp?err=timeout");
+    // 1. KIỂM TRA PHIÊN QUẢN LÝ (Chặt chẽ)
+    ThanhVien currentQL = (ThanhVien)session.getAttribute("quanly");
+    if(currentQL == null){
+        response.sendRedirect("dangnhap.jsp?err=timeout"); // Giả định gddangnhap.jsp ở thư mục gốc
         return;
     }
-    // ... (Phần logic còn lại giữ nguyên)
     
-    Integer idTuanlamviecObj = (Integer) session.getAttribute("idTuanlamviec");
-    if (idTuanlamviecObj == null) {
-        response.sendRedirect("gdDangKiLich.jsp");
-        return;
-    }
+    BacSi bsDangChon = (BacSi) session.getAttribute("bacsidangchon");
+    String maBacsi = bsDangChon.getMaBS();
+    // 3. LẤY ID TUẦN TỪ SESSION
+    // Giả định ID tuần được lưu khi Quản lý truy cập trang gdlichdukien.jsp
+    Integer idTuanlamviecObj = (Integer) session.getAttribute("idTuanlamviec"); 
     int idTuanlamviec = idTuanlamviecObj.intValue();
+
     CadangkiDAO caDAO = new CadangkiDAO();
     TuanlamviecDAO tuanDAO = new TuanlamviecDAO();
+    
     TuanLamViec tuanHienTai = tuanDAO.getTuanById(idTuanlamviec);
     ArrayList<CaDangKi> listTatCaCa = caDAO.getDSCaTheoTuan(idTuanlamviec);
+    
     ArrayList<ThongTinDangKiBacSi> listDKBS = 
-        (ArrayList<ThongTinDangKiBacSi>)session.getAttribute("listDangKyBacSi");
-    if (listDKBS == null) {
-        listDKBS = new ArrayList<ThongTinDangKiBacSi>();
-    }
-    Set<Integer> registeredCaIds = new HashSet<>();
-    for (ThongTinDangKiBacSi dk : listDKBS) {
-        if (dk.getCaDangKi() != null) {
-            registeredCaIds.add(dk.getCaDangKi().getId());
+            (ArrayList<ThongTinDangKiBacSi>)session.getAttribute("listDangKyBacSi");
+        if (listDKBS == null) {
+            listDKBS = new ArrayList<ThongTinDangKiBacSi>();
         }
-    }
-    
-    ArrayList<CaDangKi> listCaKhongTrung = new ArrayList<>();
-    
-    if (listTatCaCa != null) {
-        for (CaDangKi caTuan : listTatCaCa) {
-            if (!registeredCaIds.contains(caTuan.getId())) {
-                listCaKhongTrung.add(caTuan);
+        Set<Integer> registeredCaIds = new HashSet<>();
+        for (ThongTinDangKiBacSi dk : listDKBS) {
+            if (dk.getCaDangKi() != null) {
+                registeredCaIds.add(dk.getCaDangKi().getId());
             }
         }
-    }
+        
+        ArrayList<CaDangKi> listCaKhongTrung = new ArrayList<>();
+        
+        if (listTatCaCa != null) {
+            for (CaDangKi caTuan : listTatCaCa) {
+                if (!registeredCaIds.contains(caTuan.getId())) {
+                    listCaKhongTrung.add(caTuan);
+                }
+            }
+        }
+    
     String tenTuanHienThi = (tuanHienTai != null && tuanHienTai.getNgayBatDau() != null && tuanHienTai.getNgayKetThuc() != null) 
         ? "(từ " + tuanHienTai.getNgayBatDau() + " – " + tuanHienTai.getNgayKetThuc() + ")"
         : "(Tuần không xác định)";
     
 %>
 <div>
-    <h2>Chọn ca đăng kí</h2>
+    <h2>Chọn ca đăng kí cho BS: <%= bsDangChon.getHoTen() %></h2>
     
     <p>Tuần làm việc <%= tenTuanHienThi %></p>
 
@@ -93,7 +87,8 @@
                     <td><%= soNguoiToiDa %></td>
                     <td><%= soNguoiDaDangKi %></td>
                     <td>
-                        <a href="gddangkilich.jsp?action=them&idCa=<%= ca.getId() %>">Chọn</a>
+                        <%-- Nút chọn gửi ID Ca về trang xử lý (gddangkilich.jsp) với action=them --%>
+                        <a href="gdlichdukien.jsp?action=them&idCa=<%= ca.getId() %>&maBS=<%= maBacsi %>">Chọn</a>
                     </td>
                 </tr>
             <% 
@@ -103,7 +98,7 @@
         </tbody>
     </table>
 
-    <a href="gddangkilich.jsp">Quay lại</a>
+    <a href="gdlichdukien.jsp">Quay lại</a>
 </div>
 </body>
 </html>

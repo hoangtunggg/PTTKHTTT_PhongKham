@@ -39,6 +39,32 @@ public class BacsiDAO extends DAO {
         return bs;
     }
     
+    public BacSi getBacSiByMaBS(String maBS) {
+        BacSi bs = null;
+        String sql = "{call LayChiTietBacSiByMaBS(?)}"; 
+
+        try {
+        	CallableStatement cs = con.prepareCall(sql);
+            cs.setString(1, maBS);
+            ResultSet rs = cs.executeQuery(); 
+            if (rs.next()) {
+                bs = new BacSi();
+                bs.setMaBS(rs.getString("maBS"));
+                bs.setHoTen(rs.getString("hoTenBS"));
+                bs.setChucVu(rs.getString("chucvu"));
+                bs.setTkNganHang(rs.getString("tknganhang"));
+                
+                ChuyenKhoa ck = new ChuyenKhoa();
+                ck.setId(rs.getInt("idchuyenkhoa")); 
+                ck.setTenKhoa(rs.getString("tenkhoa"));
+                bs.setChuyenKhoa(ck);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bs;
+    }
+    
     public ArrayList<BacSi> getDSBacSi() {
         ArrayList<BacSi> listBS = null;
         String sql = "{call LayDSBacSiChoQL()}"; 
