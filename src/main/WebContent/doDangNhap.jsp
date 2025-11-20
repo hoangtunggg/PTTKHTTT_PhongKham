@@ -12,13 +12,10 @@
 	boolean kq = tvDao.KtraDN(tv); 
 
     if (kq) {
-        // --- BỔ SUNG: HỦY SESSION CŨ TRƯỚC KHI TIẾP TỤC ---
         if (session != null) {
             session.invalidate(); 
-            // Tạo đối tượng session mới cho người dùng hiện tại
             session = request.getSession(true); 
         }
-        // ----------------------------------------------------
         
         String vaiTro = tv.getVaiTro().toLowerCase();
         
@@ -27,16 +24,14 @@
             BacSi bs = bsDao.getBacSiByThanhVienId(tv.getId());
             
             if (bs != null) {
-            	// Ánh xạ các thuộc tính chung từ ThanhVien
             	bs.setId(tv.getId());
                 bs.setUsername(tv.getUsername());
                 bs.setHoTen(tv.getHoTen());
                 
-                // Lưu đối tượng BacSi vào Session mới
                 session.setAttribute("bacsi", bs); 
                 response.sendRedirect("bs\\gdchinhbs.jsp");
             } else {
-                 response.sendRedirect("gddangnhap.jsp?err=fail"); // Không tìm thấy chi tiết BS
+                 response.sendRedirect("gddangnhap.jsp?err=fail"); 
             }
             
         } else if (vaiTro.equals("quanly")) {
@@ -48,9 +43,9 @@
             response.sendRedirect("kt\\gdchinhkt.jsp");
             
         } else {
-            response.sendRedirect("gddangnhap.jsp?err=fail"); // Vai trò không xác định
+            response.sendRedirect("gddangnhap.jsp?err=fail"); 
         }
     } else {
-        response.sendRedirect("gddangnhap.jsp?err=fail"); // Đăng nhập thất bại
+        response.sendRedirect("gddangnhap.jsp?err=fail");
     }
 %>

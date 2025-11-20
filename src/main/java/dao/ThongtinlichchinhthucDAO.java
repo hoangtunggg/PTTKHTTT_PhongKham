@@ -1,8 +1,13 @@
 package dao;
 
+import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import model.BacSi;
+import model.ChuyenKhoa;
 import model.ThongTinDangKiBacSi;
 
 public class ThongtinlichchinhthucDAO extends DAO {
@@ -88,5 +93,38 @@ public class ThongtinlichchinhthucDAO extends DAO {
 	        }
 	    }
 	    return kq;
+	}
+	
+	public ArrayList<BacSi> getDSBacSiDaDuyet(int idCa) {
+	    ArrayList<BacSi> listBacSi = new ArrayList<>();
+	    
+	    // Gọi Stored Procedure LayDSBacSiDaDuyetTheoCa
+	    String sql = "{call LayDSBacSiDaDuyetTheoCa(?)}"; 
+
+	    try (CallableStatement cs = con.prepareCall(sql)) {
+	        cs.setInt(1, idCa);
+	        
+	        try (ResultSet rs = cs.executeQuery()) {
+	            while (rs.next()) {
+	                BacSi bs = new BacSi();
+	                
+	                // Ánh xạ thành đối tượng BacSi
+	                bs.setHoTen(rs.getString("HoTenBacSi")); 
+	                bs.setSdt(rs.getString("sdt"));
+	                bs.setMaBS(rs.getString("maBS"));
+	                
+	                // Gán Chuyên Khoa
+	                ChuyenKhoa ck = new ChuyenKhoa();
+	                ck.setTenKhoa(rs.getString("TenChuyenKhoa"));
+	                bs.setChuyenKhoa(ck);
+	                
+	                listBacSi.add(bs);
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        listBacSi = null;
+	    }
+	    return listBacSi;
 	}
 }

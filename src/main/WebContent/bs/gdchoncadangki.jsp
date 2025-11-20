@@ -5,6 +5,64 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Chọn ca đăng kí</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        text-align: center;
+        padding: 20px;
+    }
+    div {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+        color: #333;
+        margin-bottom: 15px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse; /* Xóa khoảng trống giữa các ô */
+        margin: 20px 0;
+    }
+    th, td {
+        border: 1px solid #aaa; /* Viền bảng rõ ràng */
+        padding: 10px;
+        text-align: center;
+    }
+    th {
+        background-color: #e0e0e0;
+        font-weight: bold;
+    }
+    a {
+        text-decoration: none;
+        color: #007bff; /* Màu xanh dương cho liên kết */
+        padding: 5px 10px;
+        border: 1px solid #007bff;
+        border-radius: 3px;
+        display: inline-block;
+        transition: background-color 0.3s;
+    }
+    a:hover {
+        background-color: #007bff;
+        color: white;
+    }
+    a[href="gddangkilich.jsp"] { /* Style cho nút Quay lại */
+        display: inline-block;
+        margin-top: 15px;
+        background-color: #ccc;
+        color: #333;
+        border: 1px solid #999;
+    }
+    a[href="gddangkilich.jsp"]:hover {
+        background-color: #bbb;
+        color: #000;
+    }
+</style>
 </head>
 <body>
 <%

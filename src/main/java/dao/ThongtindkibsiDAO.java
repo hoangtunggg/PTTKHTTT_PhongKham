@@ -61,7 +61,6 @@ public class ThongtindkibsiDAO extends DAO {
     
     public boolean luuDangKyBacSi(ArrayList<ThongTinDangKiBacSi> listDKBS) {
         if ((listDKBS == null) || (listDKBS.size() == 0)) return false;
-        
         boolean kq = false;
         
         // SQLs cần thiết
@@ -70,10 +69,8 @@ public class ThongtindkibsiDAO extends DAO {
         
         // THÊM: Chèn mới vào TDKI
         String sqlInsertTDKI = "INSERT INTO tblThongTinDangKiBacSi(ngayTao, tblCadangkid, tblBacsiid, trangthai) VALUES(NOW(),?,?,'CHO_DUYET')";
-        
-        // CẬP NHẬT: Cập nhật trạng thái và ngày tạo (nếu cần)
-        String sqlUpdateTDKI = "UPDATE tblThongTinDangKiBacSi SET ngayTao = NOW() WHERE id = ?";
-        
+
+  
         try {
             this.con.setAutoCommit(false);
             String maBacsi = listDKBS.get(0).getBacSi().getMaBS();
@@ -107,15 +104,7 @@ public class ThongtindkibsiDAO extends DAO {
                     
                     int newDkId;
                    
-                } else {
-                    // TRƯỜNG HỢP CŨ: UPDATE TDKI (Chỉ cập nhật nếu trạng thái thay đổi, hoặc chỉ để đánh dấu)
-                    PreparedStatement psUpdate = con.prepareStatement(sqlUpdateTDKI);
-                    psUpdate.setInt(1, existingDkId);
-                    psUpdate.executeUpdate();
-                    
-                    // LƯU Ý: Nếu bản ghi LCT đã tồn tại, lệnh INSERT LCT sẽ bị lỗi (Duplicate Key) 
-                    // hoặc bạn cần UPDATE LCT thay vì INSERT. Để đơn giản, ta chỉ UPDATE TDKI.
-                }
+                } 
             }
             
             this.con.commit(); 

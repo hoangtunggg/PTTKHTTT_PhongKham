@@ -6,7 +6,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Đăng kí lịch làm việc</title>
 <style>
-    /* CSS cơ bản */
     body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
     .container { width: 90%; margin: 0 auto; padding: 20px; }
     h2 { margin-bottom: 5px; }
@@ -26,14 +25,12 @@
     .button-group a { background-color: #dc3545; }
     .button-group button[type="submit"] { background-color: #007bff; }
     .button-group a:nth-child(2) { background-color: #28a745; }
-    /* STYLE ĐỂ KHÓA CHỨC NĂNG */
     .disabled-link { color: gray; pointer-events: none; text-decoration: none; cursor: default; }
 </style>
 </head>
 <body>
     
 	<%
-	// 1. KIỂM TRA ĐĂNG NHẬP (Bác sĩ)
 	BacSi currentBS = (BacSi)session.getAttribute("bacsi");
 	if(currentBS == null){
 	    response.sendRedirect("dangnhap.jsp?err=timeout");
@@ -44,22 +41,18 @@
     int idTuanlamviec = 0;
     String maBacsi = currentBS.getMaBS();
 
-	// Khai báo DAO
 	ThongtindkibsiDAO ttDKBSDAO = new ThongtindkibsiDAO();
 	TuanlamviecDAO tuanDao = new TuanlamviecDAO();
 	CadangkiDAO caDAO = new CadangkiDAO();
 	
 	String action = request.getParameter("action");
     
-    // Tải danh sách đăng ký từ Session hoặc khởi tạo mới
     listDKBS = (ArrayList<ThongTinDangKiBacSi>)session.getAttribute("listDangKyBacSi");
     if (listDKBS == null) {
         listDKBS = new ArrayList<ThongTinDangKiBacSi>();
     }
     
-    // =========================================================================
 	if ((action == null)||(action.trim().length() ==0)) { 
-	    // LOGIC TẢI LẦN ĐẦU
         if (session.getAttribute("idTuanlamviec") != null) {
             idTuanlamviec = (int)session.getAttribute("idTuanlamviec");
         } else {
@@ -68,7 +61,6 @@
 
         session.setAttribute("idTuanlamviec", idTuanlamviec);
         
-        // Tải từ DB chỉ khi Session chưa có dữ liệu tạm
         if (idTuanlamviec > 0 && listDKBS.isEmpty()) { 
             listDKBS = ttDKBSDAO.getDKiCuaBS(maBacsi, idTuanlamviec); 
             if (listDKBS == null) {
@@ -77,8 +69,6 @@
         } 
         
 	} else if (action.equalsIgnoreCase("set_edit_mode")) { 
-	    // LOGIC CHUYỂN SANG CHẾ ĐỘ SỬA
-	    
 	    String idCaEditParam = request.getParameter("idCa");
         if (idCaEditParam != null) {
             session.setAttribute("idCaCuDangSua", Integer.parseInt(idCaEditParam)); 
@@ -87,8 +77,6 @@
         return; 
         
 	} else if (action.equalsIgnoreCase("them")) {
-        // LOGIC THÊM VÀ SỬA (THAY THẾ)
-        
         int idCaDangKi = 0;
         try { idCaDangKi = Integer.parseInt(request.getParameter("idCa")); } catch(NumberFormatException e) { }
 

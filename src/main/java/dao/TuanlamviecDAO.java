@@ -14,7 +14,7 @@ public class TuanlamviecDAO extends DAO {
         Date currentDate = new Date(cal.getTimeInMillis());
         
         int idTuan = -1;
-        String sql = "{call LayTuanHienTai(?)}"; 
+        String sql = "{call LayIdTuanHienTai(?)}"; 
         
         try{
         	CallableStatement cs = con.prepareCall(sql);

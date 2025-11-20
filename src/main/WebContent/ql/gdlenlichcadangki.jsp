@@ -5,20 +5,58 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Chọn ca đăng kí</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center; /* Căn giữa nội dung chính */
+        padding: 20px;
+    }
+    div {
+        max-width: 800px;
+        margin: 0 auto; /* Căn giữa khối div */
+        padding: 10px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+    }
+    th, td {
+        border: 1px solid #000;
+        padding: 8px;
+        text-align: center;
+    }
+    th {
+        background-color: #e0e0e0;
+    }
+    a {
+        text-decoration: none;
+        color: #007bff;
+        padding: 5px 10px;
+        border: 1px solid #007bff;
+        border-radius: 3px;
+        display: inline-block;
+    }
+    a:hover {
+        background-color: #007bff;
+        color: white;
+    }
+</style>
 </head>
 <body>
 <%
     // 1. KIỂM TRA PHIÊN QUẢN LÝ (Chặt chẽ)
     ThanhVien currentQL = (ThanhVien)session.getAttribute("quanly");
     if(currentQL == null){
-        response.sendRedirect("dangnhap.jsp?err=timeout"); // Giả định gddangnhap.jsp ở thư mục gốc
+        response.sendRedirect("dangnhap.jsp?err=timeout"); 
         return;
     }
     
+    // Lấy đối tượng BS đang được xem
     BacSi bsDangChon = (BacSi) session.getAttribute("bacsidangchon");
     String maBacsi = bsDangChon.getMaBS();
+    
     // 3. LẤY ID TUẦN TỪ SESSION
-    // Giả định ID tuần được lưu khi Quản lý truy cập trang gdlichdukien.jsp
     Integer idTuanlamviecObj = (Integer) session.getAttribute("idTuanlamviec"); 
     int idTuanlamviec = idTuanlamviecObj.intValue();
 
@@ -88,7 +126,7 @@
                     <td><%= soNguoiDaDangKi %></td>
                     <td>
                         <%-- Nút chọn gửi ID Ca về trang xử lý (gddangkilich.jsp) với action=them --%>
-                        <a href="gdlichdukien.jsp?action=them&idCa=<%= ca.getId() %>&maBS=<%= maBacsi %>">Chọn</a>
+                        <a href="gddangkilich.jsp?action=them&idCa=<%= ca.getId() %>&maBS=<%= maBacsi %>">Chọn</a>
                     </td>
                 </tr>
             <% 
