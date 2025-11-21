@@ -68,10 +68,10 @@
             }
         } 
         
-	} else if (action.equalsIgnoreCase("set_edit_mode")) { 
-	    String idCaEditParam = request.getParameter("idCa");
-        if (idCaEditParam != null) {
-            session.setAttribute("idCaCuDangSua", Integer.parseInt(idCaEditParam)); 
+	} else if (action.equalsIgnoreCase("sua")) { 
+	    String idCaEdit = request.getParameter("idCa");
+        if (idCaEdit != null) {
+            session.setAttribute("idCaCuDangSua", Integer.parseInt(idCaEdit)); 
         }
         response.sendRedirect("gdchoncadangki.jsp");
         return; 
@@ -84,7 +84,6 @@
         Integer idCaCuObj = (Integer) session.getAttribute("idCaCuDangSua");
         
         if (idCaCuObj != null) {
-            // Đang ở chế độ SỬA: XÓA ca cũ khỏi danh sách
             int idCaCu = idCaCuObj.intValue();
             Iterator<ThongTinDangKiBacSi> iterator = listDKBS.iterator();
             while (iterator.hasNext()) {
@@ -113,13 +112,12 @@
                 dkMoi.setCaDangKi(caMoi);
                 dkMoi.setBacSi(currentBS);
                 dkMoi.setNgayTao(new java.sql.Date(System.currentTimeMillis()));
-                dkMoi.setTrangThai("CHO_DUYET"); // Mặc định trạng thái mới là CHO_DUYET
+                dkMoi.setTrangThai("CHO_DUYET");
                 listDKBS.add(dkMoi);
             }
         }
         
 	} else if (action.equalsIgnoreCase("xoa")) {
-        // LOGIC XÓA
         int idCaDangKiCanXoa = 0;
         try {
             idCaDangKiCanXoa = Integer.parseInt(request.getParameter("idCa"));
@@ -138,20 +136,16 @@
         }
 	}
     
-	// 3. LƯU LẠI DANH SÁCH CUỐI CÙNG VÀO SESSION
 	session.setAttribute("listDangKyBacSi", listDKBS);
 	
-	// Khai báo biến hiển thị
 	int totalCaTrongTuan = listDKBS.size();
     String tenBacSi = currentBS.getHoTen(); 
-    String tenChuyenKhoa = (currentBS.getChuyenKhoa() != null) ? currentBS.getChuyenKhoa().getTenKhoa() : "Chưa xác định";
+    String tenChuyenKhoa = currentBS.getChuyenKhoa().getTenKhoa();
     
-    // Tải chi tiết Tuần cho phần hiển thị
     TuanLamViec tuanHienTai = tuanDao.getTuanById((Integer) session.getAttribute("idTuanlamviec"));
-    String ngayBatDau = (tuanHienTai != null && tuanHienTai.getNgayBatDau() != null) ? tuanHienTai.getNgayBatDau().toString() : "N/A";
-    String ngayKetThuc = (tuanHienTai != null && tuanHienTai.getNgayKetThuc() != null) ? tuanHienTai.getNgayKetThuc().toString() : "N/A";
+    String ngayBatDau = tuanHienTai.getNgayBatDau().toString();
+    String ngayKetThuc = tuanHienTai.getNgayKetThuc().toString();
 	
-    // KIỂM TRA TOÀN BỘ LIST ĐÃ DUYỆT CHƯA (Dùng cho nút Lưu)
     boolean allApproved = listDKBS.stream().allMatch(dk -> "DA_DUYET".equalsIgnoreCase(dk.getTrangThai()));
     
 	%>
@@ -188,18 +182,16 @@
                 } else {
                     int stt = 1;
                     for (ThongTinDangKiBacSi dk : listDKBS) {
-                        String ngayLamViec = (dk.getCaDangKi() != null) ? dk.getCaDangKi().getNgayLamViec() : "N/A";
-                        String caLamViec = (dk.getCaDangKi() != null) ? dk.getCaDangKi().getCaLamViec() : "N/A";
-                        int idCaHienTai = (dk.getCaDangKi() != null) ? dk.getCaDangKi().getId() : 0;
+                        String ngayLamViec = dk.getCaDangKi().getNgayLamViec();
+                        String caLamViec = dk.getCaDangKi().getCaLamViec();
+                        int idCaHienTai = dk.getCaDangKi().getId();
                         
-                        // LẤY TRẠNG THÁI VÀ XỬ LÝ KHÓA CHỨC NĂNG
-                        String trangThai = (dk.getTrangThai() != null) ? dk.getTrangThai() : "CHUA_DUYỆT";
+                        String trangThai = (dk.getTrangThai() != null) ? dk.getTrangThai() : "CHUA_DUYET";
                         boolean isApproved = "DA_DUYET".equalsIgnoreCase(trangThai);
                         
-                        // TÍNH TOÁN LINK VÀ CHUỖI BỊ KHÓA
                         String linkSuaHtml = isApproved 
                                 ? "<span class='disabled-link'>Sửa</span>"
-                                : "<a href=\"gddangkilich.jsp?action=set_edit_mode&idCa=" + idCaHienTai + "\">Sửa</a>";
+                                : "<a href=\"gddangkilich.jsp?action=sua&idCa=" + idCaHienTai + "\">Sửa</a>";
                                 
                         String linkXoaHtml = isApproved 
                                 ? "<span class='disabled-link'>Xóa</span>"
