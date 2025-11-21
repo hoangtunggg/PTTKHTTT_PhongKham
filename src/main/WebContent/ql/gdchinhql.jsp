@@ -10,7 +10,7 @@
         font-family: Arial, sans-serif;
         padding: 40px;
         text-align: center;
-        display: flex; /* Căn giữa nội dung chính */
+        display: flex; 
         flex-direction: column;
         align-items: center;
     }
@@ -22,7 +22,7 @@
         background-color: #fff;
     }
     button {
-        background-color: #007bff; /* Màu xanh dương cho nút chính */
+        background-color: #007bff; 
         color: white;
         padding: 10px 15px;
         border: none;
@@ -34,7 +34,7 @@
         transition: background-color 0.3s;
     }
     .logout-button {
-        background-color: #dc3545 !important; /* Màu đỏ cho Đăng xuất */
+        background-color: #dc3545 !important; 
     }
     a {
         text-decoration: none;
@@ -57,7 +57,6 @@ if(ql == null){
 	<button>Lên lịch làm việc</button>
 </a>
 
-<%-- NÚT ĐĂNG XUẤT --%>
 <a href="../dodangxuat.jsp">
     <button class="logout-button">Đăng xuất</button>
 </a>

@@ -28,14 +28,12 @@
     BacsiDAO bacsiDAO = new BacsiDAO();
     TuanlamviecDAO tuanDAO = new TuanlamviecDAO();
 
-    // 1. LẤY ID VÀ CHI TIẾT TUẦN HIỆN TẠI
     int idTuanHienTai = tuanDAO.getTuanhtai(); 
     session.setAttribute("idTuanlamviec", idTuanHienTai);
     TuanLamViec tuanHienTai = tuanDAO.getTuanById(idTuanHienTai);
     
     ArrayList<BacSi> listBacSi = bacsiDAO.getDSBacSi();
     
-    // Chuẩn bị thông tin tuần để hiển thị
     String ngayBatDau = (tuanHienTai != null && tuanHienTai.getNgayBatDau() != null) ? tuanHienTai.getNgayBatDau().toString() : "N/A";
     String ngayKetThuc = (tuanHienTai != null && tuanHienTai.getNgayKetThuc() != null) ? tuanHienTai.getNgayKetThuc().toString() : "N/A";
 %>

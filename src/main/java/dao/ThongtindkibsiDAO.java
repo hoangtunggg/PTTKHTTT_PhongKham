@@ -62,18 +62,17 @@ public class ThongtindkibsiDAO extends DAO {
     public boolean luuDangKyBacSi(ArrayList<ThongTinDangKiBacSi> listDKBS) {
         if ((listDKBS == null) || (listDKBS.size() == 0)) return false;
         boolean kq = false;
-        String sqlFindTDKI = "SELECT id FROM tblThongTinDangKiBacSi WHERE tblCadangkid = ? AND tblBacsiid = ?";
-        String sqlInsertTDKI = "INSERT INTO tblThongTinDangKiBacSi(ngayTao, tblCadangkid, tblBacsiid, trangthai) VALUES(NOW(),?,?,'CHO_DUYET')";
+        String sqlKtraTTDKI = "SELECT id FROM tblThongTinDangKiBacSi WHERE tblCadangkid = ? AND tblBacsiid = ?";
+        String sqlThemTTTDKI = "INSERT INTO tblThongTinDangKiBacSi(ngayTao, tblCadangkid, tblBacsiid, trangthai) VALUES(NOW(),?,?,'CHO_DUYET')";
         try {
             this.con.setAutoCommit(false);
             String maBacsi = listDKBS.get(0).getBacSi().getMaBS();
-            int idQuanLy = listDKBS.get(0).getBacSi().getId();
             for (ThongTinDangKiBacSi dk : listDKBS) {
                 int caId = dk.getCaDangKi().getId();
-                PreparedStatement psFind = con.prepareStatement(sqlFindTDKI);
-                psFind.setInt(1, caId);
-                psFind.setString(2, maBacsi);
-                ResultSet rs = psFind.executeQuery();
+                PreparedStatement psKtra = con.prepareStatement(sqlKtraTTDKI);
+                psKtra.setInt(1, caId);
+                psKtra.setString(2, maBacsi);
+                ResultSet rs = psKtra.executeQuery();
                 
                 int existingDkId = 0;
                 if (rs.next()) {
@@ -82,10 +81,10 @@ public class ThongtindkibsiDAO extends DAO {
                 rs.close();
 
                 if (existingDkId == 0) {
-                    PreparedStatement psInsertTDKI = con.prepareStatement(sqlInsertTDKI, PreparedStatement.RETURN_GENERATED_KEYS);
-                    psInsertTDKI.setInt(1, caId);
-                    psInsertTDKI.setString(2, maBacsi);
-                    psInsertTDKI.executeUpdate();
+                    PreparedStatement psThemTTDKI = con.prepareStatement(sqlThemTTTDKI);
+                    psThemTTDKI.setInt(1, caId);
+                    psThemTTDKI.setString(2, maBacsi);
+                    psThemTTDKI.executeUpdate();
                 } 
             }
             

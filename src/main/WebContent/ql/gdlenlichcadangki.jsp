@@ -8,12 +8,12 @@
 <style>
     body {
         font-family: Arial, sans-serif;
-        text-align: center; /* Căn giữa nội dung chính */
+        text-align: center;
         padding: 20px;
     }
     div {
         max-width: 800px;
-        margin: 0 auto; /* Căn giữa khối div */
+        margin: 0 auto;
         padding: 10px;
     }
     table {
@@ -45,18 +45,15 @@
 </head>
 <body>
 <%
-    // 1. KIỂM TRA PHIÊN QUẢN LÝ (Chặt chẽ)
     ThanhVien currentQL = (ThanhVien)session.getAttribute("quanly");
     if(currentQL == null){
         response.sendRedirect("dangnhap.jsp?err=timeout"); 
         return;
     }
     
-    // Lấy đối tượng BS đang được xem
     BacSi bsDangChon = (BacSi) session.getAttribute("bacsidangchon");
     String maBacsi = bsDangChon.getMaBS();
     
-    // 3. LẤY ID TUẦN TỪ SESSION
     Integer idTuanlamviecObj = (Integer) session.getAttribute("idTuanlamviec"); 
     int idTuanlamviec = idTuanlamviecObj.intValue();
 
@@ -125,8 +122,7 @@
                     <td><%= soNguoiToiDa %></td>
                     <td><%= soNguoiDaDangKi %></td>
                     <td>
-                        <%-- Nút chọn gửi ID Ca về trang xử lý (gddangkilich.jsp) với action=them --%>
-                        <a href="gddangkilich.jsp?action=them&idCa=<%= ca.getId() %>&maBS=<%= maBacsi %>">Chọn</a>
+                        <a href="gdlichdukien.jsp?action=them&idCa=<%= ca.getId() %>&maBS=<%= maBacsi %>">Chọn</a>
                     </td>
                 </tr>
             <% 

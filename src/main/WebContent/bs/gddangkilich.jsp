@@ -80,7 +80,6 @@
         int idCaDangKi = 0;
         try { idCaDangKi = Integer.parseInt(request.getParameter("idCa")); } catch(NumberFormatException e) { }
 
-        boolean daTontaiCa = false;
         Integer idCaCuObj = (Integer) session.getAttribute("idCaCuDangSua");
         
         if (idCaCuObj != null) {
@@ -94,18 +93,9 @@
                 }
             }
             session.removeAttribute("idCaCuDangSua");
-        } else {
-            // Đang ở chế độ THÊM BÌNH THƯỜNG: Kiểm tra trùng lặp
-            for(ThongTinDangKiBacSi dk : listDKBS){
-                if(dk.getCaDangKi() != null && dk.getCaDangKi().getId() == idCaDangKi){
-                    daTontaiCa = true;
-                    break;
-                }
-            }
-        }
+        } 
         
-        // 2. THÊM CA MỚI (Chỉ thêm nếu không trùng hoặc đã xóa ca cũ)
-        if(!daTontaiCa && idCaDangKi > 0){   
+        if(idCaDangKi > 0){   
         	CaDangKi caMoi = caDAO.getCaDangKiByID(idCaDangKi);
             if (caMoi != null) {
                 ThongTinDangKiBacSi dkMoi = new ThongTinDangKiBacSi();

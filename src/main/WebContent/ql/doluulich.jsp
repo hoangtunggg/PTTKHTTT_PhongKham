@@ -15,7 +15,6 @@
 </head>
 <body>
 <%
-    // 1. KIỂM TRA QUẢN LÝ VÀ DỮ LIỆU
     ThanhVien currentQL = (ThanhVien)session.getAttribute("quanly");
     BacSi bsDangChon = (BacSi)session.getAttribute("bacsidangchon");
     
@@ -33,38 +32,18 @@
     if (listDKBS == null || listDKBS.isEmpty()) {
         statusMessage = "Chưa có lịch làm việc nào để lưu. Vui lòng thêm lịch trước.";
     } else {
-        // 2. THỰC HIỆN LƯU VÀO DATABASE
         
         ThongtinlichchinhthucDAO ttlichchinhthucDAO = new ThongtinlichchinhthucDAO(); 
         int idQuanLy = currentQL.getId();
         
-        // --- LOGGING VÀO CONSOLE ---
-        System.out.println("--- LOG START: doluulich.jsp ---");
-        System.out.println("LOG: QL ID (tblQuanlyid): " + idQuanLy);
-        System.out.println("LOG: BS MaBS: " + (bsDangChon != null ? bsDangChon.getMaBS() : "N/A"));
-        System.out.println("LOG: Total records to process: " + listDKBS.size());
-        
-        // LOG CHI TIẾT ID TỪNG BẢN GHI TRONG LIST
-        int i = 0;
-        for (ThongTinDangKiBacSi dk : listDKBS) {
-            i++;
-            // Ghi log TDKI ID (Khóa ngoại chính) và Ca ID (để debug)
-            System.out.println("LOG: Item " + i + " -> TDKI ID (FK): " + dk.getId() + ", Ca ID: " + dk.getCaDangKi().getId());
-        }
-        System.out.println("------------------------------------");
-        // -----------------------------
-
-        // Gọi phương thức lưu trữ Lịch Chính Thức
         success = ttlichchinhthucDAO.luuLichChinhThuc(listDKBS, idQuanLy); 
         
         if (success) {
             session.removeAttribute("listDangKyBacSi");
-            System.out.println("LOG: Transaction successful. List DKBS removed from session.");
             
             statusMessage = "Lưu Lịch Chính Thức thành công! Tất cả ca đã được DA_DUYET.";
         } else {
             statusMessage = "LỖI: Không thể lưu Lịch Chính Thức vào cơ sở dữ liệu. Vui lòng kiểm tra log.";
-            System.out.println("LOG: Transaction FAILED. Check if TDKI IDs exist in database.");
         }
     }
 %>
@@ -73,7 +52,6 @@
         <h3><%= statusMessage %></h3>
     </div>
     
-    <%-- Quay lại trang xem lịch dự kiến để thấy sự thay đổi --%>
     <a href="gdlichdukien.jsp" class="button-quaylai">Quay lại Lịch Dự Kiến</a>
 
 </body>
