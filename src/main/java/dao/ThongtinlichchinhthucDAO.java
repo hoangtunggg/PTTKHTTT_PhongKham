@@ -30,7 +30,7 @@ public class ThongtinlichchinhthucDAO extends DAO {
 	// Phương thức 2: THÊM BẢN GHI LỊCH CHÍNH THỨC (INSERT)
 	private void themLichChinhThuc(ThongTinDangKiBacSi dk, int idQuanLy) throws Exception {
 	    // Chèn vào bảng lịch chính thức (tblThongTinLichChinhThuc) với trạng thái 1 (DA_DUYET)
-	    String sqlThemLCT = "INSERT INTO tblThongTinLichChinhThuc(trangthaiduyet, tblThongtindangkibacsiid, tblQuanlyid) VALUES(1, ?, ?)"; 
+	    String sqlThemLCT = "INSERT INTO tblThongTinLichChinhThuc(trangthaiduyet, tblThongtindangkibacsiid, tblQuanlyid) VALUES('DA_DUYET', ?, ?)"; 
 	    
 	    try (PreparedStatement psThemLCT = con.prepareStatement(sqlThemLCT)) {
 	        psThemLCT.setInt(1, dk.getId()); // ID TDKI làm Khóa ngoại

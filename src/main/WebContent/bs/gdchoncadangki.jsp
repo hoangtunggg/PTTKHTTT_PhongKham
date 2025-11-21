@@ -38,6 +38,15 @@
         background-color: #e0e0e0;
         font-weight: bold;
     }
+    
+    .disabled-link {
+        color: #999;
+        border: 1px solid #999;
+        background-color: #f0f0f0;
+        cursor: not-allowed;
+        pointer-events: none; /* Ngăn không cho click */
+    }
+    
     a {
         text-decoration: none;
         color: #007bff; /* Màu xanh dương cho liên kết */
@@ -69,14 +78,6 @@
     // 1. LẤY ĐỐI TƯỢNG BÁC SĨ VÀ LOGGING
     BacSi bs = (BacSi)session.getAttribute("bacsi");
     
-    // --- BỔ SUNG LOGGING VÀO CONSOLE CỦA SERVER ---
-    if (bs != null) {
-        System.out.println("LOG: BacSi found in session. HoTen: " + bs.getHoTen() + ", MaBS: " + bs.getMaBS());
-    } else {
-        System.out.println("LOG: BacSi object is NULL in session. Redirecting to login.");
-    }
-    // ---------------------------------------------
-    
     if(bs == null){
         response.sendRedirect("dangnhap.jsp?err=timeout");
         return;
@@ -88,11 +89,13 @@
         response.sendRedirect("gdDangKiLich.jsp");
         return;
     }
+    
     int idTuanlamviec = idTuanlamviecObj.intValue();
     CadangkiDAO caDAO = new CadangkiDAO();
     TuanlamviecDAO tuanDAO = new TuanlamviecDAO();
+    
     TuanLamViec tuanHienTai = tuanDAO.getTuanById(idTuanlamviec);
-    ArrayList<CaDangKi> listTatCaCa = caDAO.getDSCaTheoTuan(idTuanlamviec);
+    ArrayList<CaDangKi> listTatCaCa = caDAO.getDSCaTheoTuan2(idTuanlamviec);
     ArrayList<ThongTinDangKiBacSi> listDKBS = 
         (ArrayList<ThongTinDangKiBacSi>)session.getAttribute("listDangKyBacSi");
     if (listDKBS == null) {
@@ -109,11 +112,19 @@
     
     if (listTatCaCa != null) {
         for (CaDangKi caTuan : listTatCaCa) {
-            if (!registeredCaIds.contains(caTuan.getId())) {
-                listCaKhongTrung.add(caTuan);
+            boolean isAlreadyRegistered = registeredCaIds.contains(caTuan.getId());
+            
+            // LOGIC KIỂM TRA SĨ SỐ: Ca có thể đăng ký nếu chưa được đăng ký và CÒN CHỖ
+            // SoNguoiDaDuyet < SoNguoiToiDa
+            boolean isFull = (caTuan.getSoNguoiDaDuyet() >= caTuan.getSoNguoiToiDa());
+            
+            // Chỉ thêm vào danh sách hiển thị nếu thỏa mãn cả hai điều kiện
+            if (!isAlreadyRegistered) {
+            	listCaKhongTrung.add(caTuan);
             }
         }
     }
+    
     String tenTuanHienThi = (tuanHienTai != null && tuanHienTai.getNgayBatDau() != null && tuanHienTai.getNgayKetThuc() != null) 
         ? "(từ " + tuanHienTai.getNgayBatDau() + " – " + tuanHienTai.getNgayKetThuc() + ")"
         : "(Tuần không xác định)";
@@ -143,15 +154,20 @@
             <% 
             } else {
                 for (CaDangKi ca : listCaKhongTrung) {
-                    int soNguoiToiDa = 5; 
-                    int soNguoiDaDangKi = 1; 
+                	int soNguoiToiDa = ca.getSoNguoiToiDa(); 
+                    int soNguoiDaDuyet = ca.getSoNguoiDaDuyet(); 
+                    boolean caDaDay = (soNguoiDaDuyet >= soNguoiToiDa);
             %>
                 <tr>
                     <td><%= ca.getNgayLamViec() %> - <%= ca.getCaLamViec() %></td>
-                    <td><%= soNguoiToiDa %></td>
-                    <td><%= soNguoiDaDangKi %></td>
+                    <td><%= ca.getSoNguoiToiDa() %></td>
+                    <td><%= ca.getSoNguoiDaDuyet() %></td>
                     <td>
-                        <a href="gddangkilich.jsp?action=them&idCa=<%= ca.getId() %>">Chọn</a>
+                        <% if (caDaDay) { %>
+                            <span class="disabled-link">Đã đầy</span>
+                        <% } else { %>
+                            <a href="gddangkilich.jsp?action=them&idCa=<%= ca.getId() %>">Chọn</a>
+                        <% } %>
                     </td>
                 </tr>
             <% 

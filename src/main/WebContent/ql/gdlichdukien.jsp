@@ -233,7 +233,7 @@
     <div class="button-group">
     
     <%-- Nút Quay lại --%>
-    <button onclick="history.back()">Quay lại</button>
+    <a href="gdchinhql.jsp">Về trang chủ</a>
     
     <%-- Nút Thêm lịch (Liên kết) --%>
     <a href="gdlenlichcadangki.jsp?maBS=<%= maBacsi %>">Thêm lịch làm việc</a>

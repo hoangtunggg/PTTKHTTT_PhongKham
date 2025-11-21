@@ -41,6 +41,42 @@ public class CadangkiDAO extends DAO {
         }
         return listCa;
     }
+    
+    public ArrayList<CaDangKi> getDSCaTheoTuan2(int idTuanlamviec) {
+        ArrayList<CaDangKi> listCa = new ArrayList<>();
+        // Gọi SP mới để lấy số người tối đa và số người đã đăng ký
+        String sql = "{call LayDSCaVaSoNguoiDaDuyet(?)}"; 
+
+        try (CallableStatement cs = con.prepareCall(sql)) {
+            cs.setInt(1, idTuanlamviec);
+            
+            try (ResultSet rs = cs.executeQuery()) {
+                while (rs.next()) {
+                    CaDangKi ca = new CaDangKi();
+                    
+                    // Ánh xạ các trường cơ bản
+                    ca.setId(rs.getInt("id"));
+                    ca.setNgayLamViec(rs.getString("ngaylamviec"));
+                    ca.setCaLamViec(rs.getString("calamviec"));
+                    
+                    // ÁNH XẠ DỮ LIỆU SĨ SỐ MỚI
+                    ca.setSoNguoiToiDa(rs.getInt("SoNguoiToiDa")); 
+                    ca.setSoNguoiDaDuyet(rs.getInt("SoNguoiDaDuyet"));
+                    
+                    // Ánh xạ Tuần
+                    TuanLamViec tlv = new TuanLamViec();
+                    tlv.setId(rs.getInt("idTuan"));
+                    ca.setTuanLamViec(tlv);
+                    
+                    listCa.add(ca);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            listCa = null;
+        }
+        return listCa;
+    }
 
     public CaDangKi getCaDangKiByID(int idCa) {
         CaDangKi ca = null;
